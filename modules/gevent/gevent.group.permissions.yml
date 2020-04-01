@@ -1,0 +1,3 @@
+access group_event overview:
+  title: 'Access group event overview'
+  description: 'Access the overview of all group events, regardless of event type'

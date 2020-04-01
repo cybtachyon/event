@@ -1,0 +1,103 @@
+<?php
+
+/**
+ * @file
+ * Enables Group functionality for the Event module.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\event\Entity\EventInterface;
+use Drupal\event\Entity\EventTypeInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function gevent_event_type_insert(EventTypeInterface $event_type) {
+  \Drupal::service('plugin.manager.group_content_enabler')->clearCachedDefinitions();
+}
+
+/**
+ * Implements hook_entity_access().
+ *
+ * When trying to view, update or delete an event it suffices to have the right to
+ * do so in only one group the event belongs to. If you wish to prevent any such
+ * action on your own terms, implement hook_event_access() in your module.
+ */
+function gevent_entity_access(EntityInterface $event, $op, AccountInterface $account) {
+  // Only act on Event Entities.
+  if (!($event instanceof EventInterface)) {
+    return AccessResult::neutral();
+  }
+
+  // We do not care about create access as we have our own wizard for that. Any
+  // operation aside from 'view', 'update' and 'delete' is also unsupported.
+  if (!in_array($op, ['view', 'update', 'delete'])) {
+    return AccessResult::neutral();
+  }
+
+  // Some modules, including the code in \Drupal\event\EventForm::access() may
+  // check for 'view', 'update' or 'delete' access on new events, even though
+  // that makes little sense. We need to account for it to avoid crashes because
+  // we would otherwise query the DB with a non-existent event ID.
+  if ($event->isNew()) {
+    return AccessResult::neutral();
+  }
+
+  $plugin_id = 'group_event:' . $event->bundle();
+
+  // Load all of the group content for this event.
+  $group_contents = \Drupal::entityTypeManager()
+    ->getStorage('group_content')
+    ->loadByEntity($event);
+
+  // If the event does not belong to any group, we have nothing to say.
+  if (empty($group_contents)) {
+    return AccessResult::neutral();
+  }
+
+  /** @var \Drupal\group\Entity\GroupInterface[] $groups */
+  $groups = [];
+  foreach ($group_contents as $group_content) {
+    /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
+    $group = $group_content->getGroup();
+    $groups[$group->id()] = $group;
+  }
+
+  // From this point on you need group to allow you to perform the operation.
+  switch ($op) {
+    case 'view':
+      foreach ($groups as $group) {
+        if ($event->isPublished()) {
+          if ($group->hasPermission("view $plugin_id entity", $account)) {
+            return AccessResult::allowed();
+          }
+        }
+        elseif ($group->hasPermission("view unpublished $plugin_id entity", $account)) {
+          return AccessResult::allowed();
+        }
+      }
+      break;
+
+    case 'update':
+    case 'delete':
+      foreach ($groups as $group) {
+        if ($group->hasPermission("$op any $plugin_id entity", $account)) {
+          return AccessResult::allowed();
+        }
+        elseif ($account->id() == $event->getOwnerId() && $group->hasPermission("$op own $plugin_id entity", $account)) {
+          return AccessResult::allowed();
+        }
+      }
+      break;
+  }
+
+  // Instead of outright forbidding access when no group granted it, we return
+  // a neutral access result to play nice with other modules. If the end result
+  // is still neutral, Drupal will deny access anyway unless the event grants
+  // system allows the operation in a last ditch effort to determine access.
+  return AccessResult::neutral();
+}
+
