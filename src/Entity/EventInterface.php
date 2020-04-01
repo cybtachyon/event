@@ -34,6 +34,26 @@ interface EventInterface extends ContentEntityInterface, RevisionLogInterface, E
   public function setName($name);
 
   /**
+   * Gets the Event machine name.
+   *
+   * @return string
+   *   Name of the Event.
+   */
+  public function getMachineName();
+
+  /**
+   * Sets the Event machine name.
+   *
+   * @param string $name
+   *   The Event name.
+   *
+   * @return \Drupal\event\Entity\EventInterface
+   *   The called Event entity.
+   */
+  public function setMachineName($name);
+
+
+  /**
    * Gets the Event creation timestamp.
    *
    * @return int

@@ -36,14 +36,14 @@ class EventTypeForm extends EntityForm {
       '#disabled' => !$event_type->isNew(),
     ];
 
+    /** TODO: Implement. By default with the core patch, timezones are always available
     $form['timezone'] = [
       '#title' => $this->t('Allow content to use custom timezones'),
       '#type' => 'checkbox',
       '#default_value' => $event_type->useTimezones(),
       '#description' => $this->t('Enable timezones on a per event basis.'),
     ];
-
-    /* You will need additional form elements for your custom properties. */
+     */
 
     return $form;
   }
@@ -58,13 +58,14 @@ class EventTypeForm extends EntityForm {
 
     switch ($status) {
       case SAVED_NEW:
-        drupal_set_message($this->t('Created the %label Event type.', [
+        event_add_description_field($event_type);
+        $this->messenger()->addStatus($this->t('Created the %label Event type.', [
           '%label' => $event_type->label(),
         ]));
         break;
 
       default:
-        drupal_set_message($this->t('Saved the %label Event type.', [
+        $this->messenger()->addStatus($this->t('Saved the %label Event type.', [
           '%label' => $event_type->label(),
         ]));
     }

@@ -140,6 +140,21 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
   /**
    * {@inheritdoc}
    */
+  public function getMachineName() {
+    return $this->get('machine_name')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setMachineName($name) {
+    $this->set('machine_name', $name);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getCreatedTime() {
     return $this->get('created')->value;
   }
@@ -198,6 +213,26 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
   }
 
   /**
+   * Checks that an existing machine name does not already exist.
+   *
+   * This is a static method so it can be used by a machine name field.
+   *
+   * @param string $machine_name
+   *   The machine name to load the entity by.
+   *
+   * @return \Drupal\event\Entity\Event|array
+   *   Loaded Link entity or NULL if not found.
+   */
+  public static function loadByMachineName($machine_name) {
+    $storage = \Drupal::service('entity.manager')->getStorage('event');
+    $result = $storage->getQuery()
+      ->condition('machine_name', $machine_name)
+      ->execute();
+    return $result ? $storage->loadMultiple($result) : [];
+  }
+
+
+  /**
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
@@ -229,8 +264,8 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['name'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Name'))
-      ->setDescription(t('The name of the Event entity.'))
+      ->setLabel(t('Event Name'))
+      ->setDescription(t('The name of the Event.'))
       ->setRevisionable(TRUE)
       ->setSettings([
         'max_length' => 50,
@@ -248,6 +283,26 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
+
+    $fields['machine_name'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Machine name'))
+      ->setDescription(t('Machine (Short) name of the event'))
+      ->setRequired(TRUE)
+      ->setSetting('max_length', 32)
+      ->addConstraint('UniqueField', [])
+      ->setDisplayOptions('form', [
+        'type' => 'machine_name',
+        'weight' => -4,
+        'settings' => [
+          'source' => [
+            'name',
+            'widget',
+            0,
+            'value',
+          ],
+          'exists' => '\Drupal\event\Entity\Event::loadByMachineName',
+        ],
+      ]);
 
     $fields['status'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Publishing status'))
@@ -269,6 +324,62 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
       ->setReadOnly(TRUE)
       ->setRevisionable(TRUE)
       ->setTranslatable(TRUE);
+
+    $fields['event_start'] = BaseFieldDefinition::create('datetime')
+      ->setLabel(t('Start date'))
+      ->setDescription(t('Start Date (Time) for an Event.'))
+      ->setRevisionable(TRUE)
+      ->setSettings([
+        'datetime_type' => 'datetime',
+        'timezone_storage' => TRUE,
+      ])
+      ->setDefaultValue('')
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'datetime_default',
+        'settings' => [
+          'format_type' => 'default',
+        ],
+        'weight' => 14,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'datetime_default',
+        'settings' => [
+          'format_type' => 'medium',
+          'timezone_per_date' => TRUE,
+        ],
+        'weight' => 14,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    $fields['event_end'] = BaseFieldDefinition::create('datetime')
+      ->setLabel(t('End date'))
+      ->setDescription(t('End Date (Time) for an Event.'))
+      ->setRevisionable(TRUE)
+      ->setSettings([
+        'datetime_type' => 'datetime',
+        'timezone_storage' => TRUE,
+      ])
+      ->setDefaultValue('')
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'datetime_default',
+        'settings' => [
+          'format_type' => 'default',
+        ],
+        'weight' => 15,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'datetime_default',
+        'settings' => [
+          'format_type' => 'medium',
+          'timezone_per_date' => TRUE,
+        ],
+        'weight' => 15,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
 
     return $fields;
   }
