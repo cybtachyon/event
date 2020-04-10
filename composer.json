@@ -14,12 +14,12 @@
     }
   },
   "require": {
-    "drupal/machine_name_widget": "^1.0",
     "drupal/diff": "*@dev",
-    "drupal/field_permissions": "^1.0@beta",
-    "drupal/entity_embed": "1.0.0-beta2",
-    "drupal/entity": "^1.0.0-beta1",
-    "drupal/entity_browser": "2.0-alpha2"
+    "drupal/field_permissions": "^1.0",
+    "drupal/entity_embed": "^1.1",
+    "drupal/entity": "^1.0",
+    "drupal/entity_browser": "^2.0",
+    "drupal/machine_name_widget": "^2.0@alpha"
   },
   "autoload-dev": {
     "psr-4": {
