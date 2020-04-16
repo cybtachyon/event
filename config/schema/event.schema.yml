@@ -1,4 +1,4 @@
-event.event_type.*:
+event.type.*:
   type: config_entity
   label: 'Event type config'
   mapping:

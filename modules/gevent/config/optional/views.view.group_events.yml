@@ -1,16 +1,17 @@
-uuid: 342c8003-45d8-4627-92e7-62232a16a340
 langcode: en
 status: true
 dependencies:
   module:
+    - gevent
+    - group
     - event
-id: events
-label: Events
-module: views
-description: 'Find and manage Events'
+id: group_events
+label: 'Group events'
+module: gevent
+description: 'Lists all of the events that have been added to a group.'
 tag: ''
 base_table: event_field_data
-base_field: id
+base_field: nid
 core: 8.x
 display:
   default:
@@ -20,8 +21,9 @@ display:
     position: 0
     display_options:
       access:
-        type: none
-        options: {  }
+        type: group_permission
+        options:
+          group_permission: 'access group_event overview'
       cache:
         type: tag
         options: {  }
@@ -71,19 +73,23 @@ display:
           row_class: ''
           default_row_class: true
           override: true
-          sticky: false
+          sticky: true
           caption: ''
           summary: ''
           description: ''
           columns:
-            name: name
+            title: title
             type: type
-            user_id: user_id
             status: status
             changed: changed
-            operations: operations
+            view_group_content: view_group_content
+            edit_group_content: edit_group_content
+            delete_group_content: delete_group_content
+            edit_event: edit_event
+            delete_event: delete_event
+            dropbutton: dropbutton
           info:
-            name:
+            title:
               sortable: true
               default_sort_order: asc
               align: ''
@@ -97,15 +103,8 @@ display:
               separator: ''
               empty_column: false
               responsive: ''
-            user_id:
-              sortable: false
-              default_sort_order: asc
-              align: ''
-              separator: ''
-              empty_column: false
-              responsive: ''
             status:
-              sortable: true
+              sortable: false
               default_sort_order: asc
               align: ''
               separator: ''
@@ -113,32 +112,136 @@ display:
               responsive: ''
             changed:
               sortable: true
+              default_sort_order: desc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            view_group_content:
+              sortable: false
               default_sort_order: asc
               align: ''
               separator: ''
               empty_column: false
               responsive: ''
-            operations:
+            edit_group_content:
+              sortable: false
+              default_sort_order: asc
               align: ''
               separator: ''
               empty_column: false
               responsive: ''
-          default: '-1'
+            delete_group_content:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            edit_event:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            delete_event:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            dropbutton:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+          default: changed
           empty_table: true
       row:
-        type: 'entity:event'
+        type: fields
+        options:
+          inline: {  }
+          separator: ''
+          hide_empty: false
+          default_field_elements: true
       fields:
-        name:
+        title:
+          id: title
           table: event_field_data
-          field: name
-          id: name
-          entity_type: null
-          entity_field: name
-          plugin_id: field
+          field: title
           relationship: none
           group_type: group
           admin_label: ''
-          label: ''
+          label: Title
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: false
+            ellipsis: false
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: string
+          settings:
+            link_to_entity: true
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+          entity_type: event
+          entity_field: title
+          plugin_id: field
+        type:
+          id: type
+          table: event_field_data
+          field: type
+          relationship: none
+          group_type: group
+          admin_label: ''
+          label: 'Content type'
           exclude: false
           alter:
             alter_text: false
@@ -172,67 +275,6 @@ display:
           element_label_type: ''
           element_label_class: ''
           element_label_colon: true
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: string
-          settings: {  }
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
-        type:
-          id: type
-          table: event_field_data
-          field: type
-          relationship: none
-          group_type: group
-          admin_label: ''
-          label: 'Event type'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
           element_wrapper_type: ''
           element_wrapper_class: ''
           element_default_classes: true
@@ -257,71 +299,6 @@ display:
           entity_type: event
           entity_field: type
           plugin_id: field
-        user_id:
-          id: user_id
-          table: event_field_data
-          field: user_id
-          relationship: none
-          group_type: group
-          admin_label: ''
-          label: Author
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: true
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: target_id
-          type: entity_reference_label
-          settings:
-            link: true
-          group_column: target_id
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
-          entity_type: event
-          entity_field: user_id
-          plugin_id: field
         status:
           id: status
           table: event_field_data
@@ -329,7 +306,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: Published
+          label: Status
           exclude: false
           alter:
             alter_text: false
@@ -456,10 +433,267 @@ display:
           entity_type: event
           entity_field: changed
           plugin_id: field
-        operations:
-          id: operations
+        view_group_content:
+          id: view_group_content
+          table: group_content
+          field: view_group_content
+          relationship: group_content
+          group_type: group
+          admin_label: 'View relation link'
+          label: 'Link to Group content'
+          exclude: true
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          text: 'View relation'
+          entity_type: group_content
+          plugin_id: entity_link
+          output_url_as_text: false
+          absolute: false
+        edit_group_content:
+          id: edit_group_content
+          table: group_content
+          field: edit_group_content
+          relationship: group_content
+          group_type: group
+          admin_label: 'Edit relation link'
+          label: 'Link to edit Group content'
+          exclude: true
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          text: 'Edit relation'
+          entity_type: group_content
+          plugin_id: entity_link_edit
+        delete_group_content:
+          id: delete_group_content
+          table: group_content
+          field: delete_group_content
+          relationship: group_content
+          group_type: group
+          admin_label: 'Delete relation link'
+          label: 'Link to delete Group content'
+          exclude: true
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          text: 'Delete relation'
+          entity_type: group_content
+          plugin_id: entity_link_delete
+        edit_event:
+          id: edit_event
           table: event
-          field: operations
+          field: edit_event
+          relationship: none
+          group_type: group
+          admin_label: 'Edit event link'
+          label: 'Link to edit Content'
+          exclude: true
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          text: 'Edit event'
+          entity_type: event
+          plugin_id: entity_link_edit
+        delete_event:
+          id: delete_event
+          table: event
+          field: delete_event
+          relationship: none
+          group_type: group
+          admin_label: 'Delete event link'
+          label: 'Link to delete Content'
+          exclude: true
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: true
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          text: 'Delete event'
+          entity_type: event
+          plugin_id: entity_link_delete
+        dropbutton:
+          id: dropbutton
+          table: views
+          field: dropbutton
           relationship: none
           group_type: group
           admin_label: ''
@@ -496,7 +730,7 @@ display:
           element_class: ''
           element_label_type: ''
           element_label_class: ''
-          element_label_colon: false
+          element_label_colon: true
           element_wrapper_type: ''
           element_wrapper_class: ''
           element_default_classes: true
@@ -504,106 +738,19 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
+          fields:
+            view_group_content: view_group_content
+            edit_group_content: edit_group_content
+            delete_group_content: delete_group_content
+            edit_event: edit_event
+            delete_event: delete_event
+            title: '0'
+            type: '0'
+            status: '0'
+            changed: '0'
           destination: true
-          entity_type: event
-          plugin_id: entity_operations
+          plugin_id: dropbutton
       filters:
-        name:
-          id: name
-          table: event_field_data
-          field: name
-          relationship: none
-          group_type: group
-          admin_label: ''
-          operator: '='
-          value: ''
-          group: 1
-          exposed: true
-          expose:
-            operator_id: name_op
-            label: Name
-            description: ''
-            use_operator: false
-            operator: name_op
-            identifier: name
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              page_creator: '0'
-              layout_manager: '0'
-              page_reviewer: '0'
-              landing_page_creator: '0'
-              landing_page_reviewer: '0'
-              media_creator: '0'
-              media_manager: '0'
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          entity_type: event
-          entity_field: name
-          plugin_id: string
-        type:
-          id: type
-          table: event_field_data
-          field: type
-          relationship: none
-          group_type: group
-          admin_label: ''
-          operator: in
-          value: {  }
-          group: 1
-          exposed: true
-          expose:
-            operator_id: type_op
-            label: 'Event type'
-            description: ''
-            use_operator: false
-            operator: type_op
-            identifier: type
-            required: false
-            remember: false
-            multiple: false
-            remember_roles:
-              authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              page_creator: '0'
-              layout_manager: '0'
-              page_reviewer: '0'
-              landing_page_creator: '0'
-              landing_page_reviewer: '0'
-              media_creator: '0'
-              media_manager: '0'
-            reduce: false
-            argument: ''
-          is_grouped: false
-          group_info:
-            label: ''
-            description: ''
-            identifier: ''
-            optional: true
-            widget: select
-            multiple: false
-            remember: false
-            default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
-          entity_type: event
-          entity_field: type
-          plugin_id: bundle
         status:
           id: status
           table: event_field_data
@@ -612,13 +759,13 @@ display:
           group_type: group
           admin_label: ''
           operator: '='
-          value: ''
+          value: '1'
           group: 1
           exposed: true
           expose:
             operator_id: ''
-            label: 'Publishing status'
-            description: null
+            label: 'Published status'
+            description: ''
             use_operator: false
             operator: status_op
             identifier: status
@@ -627,6 +774,9 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
+              anonymous: '0'
+              administrator: '0'
+              group_admin: '0'
           is_grouped: true
           group_info:
             label: 'Published status'
@@ -647,17 +797,13 @@ display:
                 title: Unpublished
                 operator: '='
                 value: '0'
-              3:
-                title: ''
-                operator: '='
-                value: ''
           entity_type: event
           entity_field: status
           plugin_id: boolean
-        langcode:
-          id: langcode
+        type:
+          id: type
           table: event_field_data
-          field: langcode
+          field: type
           relationship: none
           group_type: group
           admin_label: ''
@@ -666,12 +812,12 @@ display:
           group: 1
           exposed: true
           expose:
-            operator_id: langcode_op
-            label: Language
+            operator_id: type_op
+            label: Type
             description: ''
             use_operator: false
-            operator: langcode_op
-            identifier: langcode
+            operator: type_op
+            identifier: type
             required: false
             remember: false
             multiple: false
@@ -679,13 +825,7 @@ display:
               authenticated: authenticated
               anonymous: '0'
               administrator: '0'
-              page_creator: '0'
-              layout_manager: '0'
-              page_reviewer: '0'
-              landing_page_creator: '0'
-              landing_page_reviewer: '0'
-              media_creator: '0'
-              media_manager: '0'
+              group_admin: '0'
             reduce: false
           is_grouped: false
           group_info:
@@ -700,25 +840,9 @@ display:
             default_group_multiple: {  }
             group_items: {  }
           entity_type: event
-          entity_field: langcode
-          plugin_id: language
-      sorts:
-        created:
-          id: created
-          table: event_field_data
-          field: created
-          relationship: none
-          group_type: group
-          admin_label: ''
-          order: DESC
-          exposed: false
-          expose:
-            label: ''
-          granularity: second
-          entity_type: event
-          entity_field: created
-          plugin_id: date
-      title: Events
+          entity_field: type
+          plugin_id: bundle
+      sorts: {  }
       header: {  }
       footer: {  }
       empty:
@@ -733,44 +857,95 @@ display:
           tokenize: false
           content: 'No content available.'
           plugin_id: text_custom
-      relationships: {  }
-      arguments: {  }
+      relationships:
+        group_content:
+          id: group_content
+          table: event_field_data
+          field: group_content
+          relationship: none
+          group_type: group
+          admin_label: 'Content relation'
+          required: true
+          group_content_plugins: {  }
+          entity_type: event
+          plugin_id: group_content_to_entity_reverse
+      arguments:
+        gid:
+          id: gid
+          table: group_content_field_data
+          field: gid
+          relationship: group_content
+          group_type: group
+          admin_label: ''
+          default_action: 'access denied'
+          exception:
+            value: all
+            title_enable: false
+            title: All
+          title_enable: true
+          title: '{{ arguments.gid|placeholder }} events'
+          default_argument_type: fixed
+          default_argument_options:
+            argument: ''
+          default_argument_skip_url: false
+          summary_options:
+            base_path: ''
+            count: true
+            items_per_page: 25
+            override: false
+          summary:
+            sort_order: asc
+            number_of_records: 0
+            format: default_summary
+          specify_validation: false
+          validate:
+            type: none
+            fail: 'not found'
+          validate_options: {  }
+          break_phrase: false
+          not: false
+          entity_type: group_content
+          entity_field: gid
+          plugin_id: numeric
       display_extenders: {  }
-      filter_groups:
-        operator: AND
-        groups:
-          1: AND
+      title: Events
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
+        - route.group
         - url
         - url.query_args
+        - user.group_permissions
+        - 'user.event_grants:view'
       tags: {  }
-  events_page_list:
+  page_1:
     display_plugin: page
-    id: events_page_list
-    display_title: Events
+    id: page_1
+    display_title: Page
     position: 1
     display_options:
       display_extenders: {  }
-      path: admin/content/event
+      path: group/%group/events
       menu:
         type: tab
         title: Events
         description: ''
         expanded: false
         parent: ''
-        weight: 0
+        weight: 25
         context: '0'
         menu_name: main
-      display_description: ''
+        enabled: true
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
+        - route.group
         - url
         - url.query_args
+        - user.group_permissions
+        - 'user.event_grants:view'
       tags: {  }

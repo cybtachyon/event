@@ -1,0 +1,116 @@
+<?php
+
+use Drupal\event\Entity\Event;
+
+/**
+ * Update event type config to be just 'type'
+ */
+function event_update_8101() {
+  $config_factory = \Drupal::configFactory();
+  $configs = $config_factory->listAll('event.event_type');
+  foreach ($configs AS $config) {
+    $event_config = $config_factory->getEditable($config);
+    $event_config->setName(preg_replace('/event.event_type/', 'event.type', $config));
+    $event_config->save();
+  }
+}
+
+/**
+ * Install the Machine Name, Date Range, and Description Fields.
+ */
+function event_update_8102() {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $bundle_of = 'event';
+
+  $storage = $entity_type_manager->getStorage($bundle_of);
+  $bundle_definition = $entity_type_manager->getDefinition($bundle_of);
+  // Sometimes the primary key isn't 'id'. e.g. 'eid' or 'item_id'.
+  $id_key = $bundle_definition->getKey('id');
+  // If there is no data table defined then use the base table.
+  $base_table_name = $storage->getDataTable() ?: $storage->getBaseTable();
+  $revision_table_name = $storage->getRevisionDataTable() ?: $storage->getRevisionTable();
+  $database = \Drupal::database();
+  $definition_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Get the existing storage definitions. If they don't exist, we cannot do
+  // anything in regards to data import.
+  $event_start_field_storage_definition = $definition_manager->getFieldStorageDefinition('event_start', $bundle_of);
+  $event_end_field_storage_definition = $definition_manager->getFieldStorageDefinition('event_end', $bundle_of);
+
+  if (isset($event_end_field_storage_definition) && isset($event_start_field_storage_definition)) {
+    // Store the existing values. Note we ignore event end timezones. If they were
+    // different, sorry, you don't get two TZs on a single event anymore.
+    $event_date_values = $database->select($base_table_name)
+      ->fields($base_table_name, [$id_key, 'event_start__value', 'event_start__timezone', 'event_end__value'])
+      ->execute()
+      ->fetchAllAssoc($id_key);
+
+    $event_date_revision_values = $database->select($revision_table_name)
+      ->fields($revision_table_name, [$id_key, 'event_start__value', 'event_start__timezone', 'event_end__value'])
+      ->execute()
+      ->fetchAllAssoc($id_key);
+
+    // Clear out the values.
+    $database->update($base_table_name)
+      ->fields(['event_start__value' => NULL, 'event_start__timezone' => NULL, 'event_end__value' => NULL, 'event_end__timezone' => NULL])
+      ->execute();
+
+    $definition_manager->uninstallFieldStorageDefinition($event_start_field_storage_definition);
+    $definition_manager->uninstallFieldStorageDefinition($event_end_field_storage_definition);
+  }
+
+  // Create a new field definition.
+  $current_fields = Event::baseFieldDefinitions($bundle_definition);
+
+  // make sure 'event date' actually exists as a field.
+  if (isset($current_fields['event_date']) && !$definition_manager->getFieldStorageDefinition('event_date', 'event')) {
+    // Install the new definition.
+    $definition_manager->installFieldStorageDefinition('event_date', $bundle_of, $bundle_of, $current_fields['event_date']);
+  }
+
+  // Install the machine name field if it doesn't exist yet.
+  if (isset($current_fields['machine_name']) && !$definition_manager->getFieldStorageDefinition('machine_name', 'event')) {
+    // Install the new definition.
+    $definition_manager->installFieldStorageDefinition('machine_name', $bundle_of, $bundle_of, $current_fields['machine_name']);
+  }
+
+  // Install the description field if it doesn't exist yet.
+  $description_field = \Drupal::configFactory()->get('field.storage.event.description');
+  if ($description_field->isNew()) {
+    \Drupal::service('config.installer')->installDefaultConfig('module', 'event');
+
+    // Install the new definition.
+    $bundles = \Drupal::service('entity_type.bundle.info')->getBundleInfo('event');
+    foreach (array_keys($bundles) as $bundle) {
+      // Load the event type
+      $event_type = \Drupal::entityTypeManager()->getStorage('event_type')->load($bundle);
+      event_add_description_field($event_type);
+    }
+  }
+
+  // Restore Base values, if we actually have anything to restore.
+  if (!empty($event_date_values) && !empty($event_date_revision_values)) {
+    foreach ($event_date_values as $id => $row) {
+      $database->update($base_table_name)
+        ->fields([
+          'event_date__value' => $row->event_start__value,
+          'event_date__end_value' => $row->event_end__value,
+          'event_date__timezone' => $row->event_start__timezone
+        ])
+        ->condition($id_key, $id)
+        ->execute();
+    }
+
+    // Restore Revision values
+    foreach ($event_date_revision_values as $id => $row) {
+      $database->update($revision_table_name)
+        ->fields([
+          'event_date__value' => $row->event_start__value,
+          'event_date__end_value' => $row->event_end__value,
+          'event_date__timezone' => $row->event_start__timezone
+        ])
+        ->condition($id_key, $id)
+        ->execute();
+    }
+  }
+}

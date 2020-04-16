@@ -1,0 +1,10 @@
+services:
+  plugin.manager.event_group_content_enabler:
+    class: 'Drupal\event_group\Plugin\EventGroupContentEnablerManager'
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@entity_type.manager']
+    tags:
+      - { name: plugin_manager_cache_clear }
+  event_group.route_subscriber:
+    class: Drupal\event_group\Routing\EventGroupRouteSubscriber
+    tags:
+      - { name: event_subscriber }

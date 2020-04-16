@@ -1,0 +1,10 @@
+uuid: 8ec74096-2712-414e-9bee-3f971afa7a02
+langcode: en
+status: true
+dependencies: {  }
+id: events
+label: Events
+description: 'The Event Group where all associated event data is stored. '
+creator_membership: true
+creator_wizard: true
+creator_roles: {  }

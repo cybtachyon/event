@@ -19,10 +19,10 @@ use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
  *       "delete" = "Drupal\event\Form\EventTypeDeleteForm"
  *     },
  *     "route_provider" = {
- *       "html" = "Drupal\event\EventTypeHtmlRouteProvider",
- *     },
+ *       "html" = "Drupal\Core\Entity\Routing\DefaultHtmlRouteProvider",
+ *     }
  *   },
- *   config_prefix = "event_type",
+ *   config_prefix = "type",
  *   admin_permission = "administer site configuration",
  *   bundle_of = "event",
  *   entity_keys = {
@@ -31,11 +31,10 @@ use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
  *     "uuid" = "uuid"
  *   },
  *   links = {
- *     "canonical" = "/admin/structure/event_type/{event_type}",
- *     "add-form" = "/admin/structure/event_type/add",
- *     "edit-form" = "/admin/structure/event_type/{event_type}/edit",
- *     "delete-form" = "/admin/structure/event_type/{event_type}/delete",
- *     "collection" = "/admin/structure/event_type"
+ *     "add-form" = "/admin/structure/event/add",
+ *     "edit-form" = "/admin/structure/event/manage/{event_type}/edit",
+ *     "delete-form" = "/admin/structure/event/manage/{event_type}/delete",
+ *     "collection" = "/admin/structure/event"
  *   }
  * )
  */

@@ -1,0 +1,7 @@
+event.type.*.third_party.event_group:
+  type: mapping
+  label: 'Event Group Settings'
+  mapping:
+    event_group_enabled:
+      type: boolean
+      label: 'Whether to enable the event (conference) settings on this event type'

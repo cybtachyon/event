@@ -3,6 +3,7 @@
 namespace Drupal\event\Entity;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\Core\Entity\RevisionLogInterface;
 use Drupal\Core\Entity\EntityChangedInterface;
 use Drupal\user\EntityOwnerInterface;
@@ -12,7 +13,7 @@ use Drupal\user\EntityOwnerInterface;
  *
  * @ingroup event
  */
-interface EventInterface extends ContentEntityInterface, RevisionLogInterface, EntityChangedInterface, EntityOwnerInterface {
+interface EventInterface extends EntityPublishedInterface, ContentEntityInterface, RevisionLogInterface, EntityChangedInterface, EntityOwnerInterface {
 
   /**
    * Gets the Event name.
@@ -71,27 +72,6 @@ interface EventInterface extends ContentEntityInterface, RevisionLogInterface, E
    *   The called Event entity.
    */
   public function setCreatedTime($timestamp);
-
-  /**
-   * Returns the Event published status indicator.
-   *
-   * Unpublished Event are only visible to restricted users.
-   *
-   * @return bool
-   *   TRUE if the Event is published.
-   */
-  public function isPublished();
-
-  /**
-   * Sets the published status of a Event.
-   *
-   * @param bool $published
-   *   TRUE to set this Event to published, FALSE to set it to unpublished.
-   *
-   * @return \Drupal\event\Entity\EventInterface
-   *   The called Event entity.
-   */
-  public function setPublished($published);
 
   /**
    * Gets the Event revision creation timestamp.

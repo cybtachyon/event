@@ -13,7 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @GroupContentEnabler(
  *   id = "group_event",
- *   label = @Translation("Group Event"),
+ *   label = @Translation("Group event"),
  *   description = @Translation("Adds events to groups both publicly and privately."),
  *   entity_type_id = "event",
  *   entity_access = TRUE,
@@ -27,10 +27,10 @@ class GroupEvent extends GroupContentEnablerBase {
   /**
    * Retrieves the event type this plugin supports.
    *
-   * @return \Drupal\event\Entity\EventTypeInterface
+   * @return \Drupal\event\EventTypeInterface
    *   The event type this plugin supports.
    */
-  protected function geteventType() {
+  protected function getEventType() {
     return EventType::load($this->getEntityBundle());
   }
 
@@ -46,7 +46,7 @@ class GroupEvent extends GroupContentEnablerBase {
     if ($group->hasPermission("create $plugin_id entity", $account)) {
       $route_params = ['group' => $group->id(), 'plugin_id' => $plugin_id];
       $operations["gevent-create-$type"] = [
-        'title' => $this->t('Add @type', ['@type' => $this->geteventType()->label()]),
+        'title' => $this->t('Add @type', ['@type' => $this->getEventType()->label()]),
         'url' => new Url('entity.group_content.create_form', $route_params),
         'weight' => 30,
       ];

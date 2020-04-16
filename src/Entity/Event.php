@@ -2,12 +2,14 @@
 
 namespace Drupal\event\Entity;
 
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\RevisionableContentEntityBase;
 use Drupal\Core\Entity\RevisionableInterface;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\datetime_range\Plugin\Field\FieldType\DateRangeItem;
 use Drupal\user\UserInterface;
 
 /**
@@ -52,11 +54,13 @@ use Drupal\user\UserInterface;
  *     "uid" = "user_id",
  *     "langcode" = "langcode",
  *     "status" = "status",
+ *     "machine_name" = "machine_name"
  *   },
  *   links = {
- *     "canonical" = "/event/{event}",
  *     "add-page" = "/event/add",
  *     "add-form" = "/event/add/{event_type}",
+ *     "canonical" = "/event/{event}",
+ *     "collection" = "/admin/content/events",
  *     "edit-form" = "/event/{event}/edit",
  *     "delete-form" = "/event/{event}/delete",
  *     "version-history" = "/event/{event}/revisions",
@@ -64,7 +68,6 @@ use Drupal\user\UserInterface;
  *     "revision_revert" = "/event/{event}/revisions/{event_revision}/revert",
  *     "revision_delete" = "/event/{event}/revisions/{event_revision}/delete",
  *     "translation_revert" = "/event/{event}/revisions/{event_revision}/revert/{langcode}",
- *     "collection" = "/event",
  *   },
  *   bundle_entity_type = "event_type",
  *   field_ui_base_route = "entity.event_type.edit_form"
@@ -207,9 +210,16 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
   /**
    * {@inheritdoc}
    */
-  public function setPublished($published) {
+  public function setPublished($published = NULL) {
     $this->set('status', $published ? TRUE : FALSE);
     return $this;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function setUnpublished() {
+    $this->set('status', FALSE);
   }
 
   /**
@@ -287,22 +297,17 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
     $fields['machine_name'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Machine name'))
       ->setDescription(t('Machine (Short) name of the event'))
-      ->setRequired(TRUE)
       ->setSetting('max_length', 32)
       ->addConstraint('UniqueField', [])
+      ->addPropertyConstraints('value', ['Regex' => ['pattern' => '/^[a-z0-9_]+$/']])
       ->setDisplayOptions('form', [
         'type' => 'machine_name',
-        'weight' => -4,
+        'weight' => -5,
         'settings' => [
-          'source' => [
-            'name',
-            'widget',
-            0,
-            'value',
-          ],
-          'exists' => '\Drupal\event\Entity\Event::loadByMachineName',
+          'source_field' => 'name',
         ],
-      ]);
+      ])
+      ->setDisplayConfigurable('form', TRUE);
 
     $fields['status'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Publishing status'))
@@ -325,63 +330,31 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
       ->setRevisionable(TRUE)
       ->setTranslatable(TRUE);
 
-    $fields['event_start'] = BaseFieldDefinition::create('datetime')
-      ->setLabel(t('Start date'))
-      ->setDescription(t('Start Date (Time) for an Event.'))
+    $fields['event_date'] = BaseFieldDefinition::create('daterange')
+      ->setLabel(t('Event Date'))
+      ->setDescription(t('Date (Time) for an Event.'))
       ->setRevisionable(TRUE)
       ->setSettings([
-        'datetime_type' => 'datetime',
+        'datetime_type' => DateRangeItem::DATETIME_TYPE_DATETIME,
         'timezone_storage' => TRUE,
       ])
-      ->setDefaultValue('')
-      ->setDisplayOptions('view', [
+      ->setDisplayOptions('view', array(
         'label' => 'above',
-        'type' => 'datetime_default',
+        'type' => 'string',
+        'weight' => -4,
+      ))
+      ->setDisplayOptions('form', array(
+        'type' => 'daterange_default',
         'settings' => [
-          'format_type' => 'default',
-        ],
-        'weight' => 14,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'datetime_default',
-        'settings' => [
-          'format_type' => 'medium',
+          'timezone_override'=> '',
           'timezone_per_date' => TRUE,
         ],
-        'weight' => 14,
-      ])
+        'weight' => -4,
+      ))
       ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
-
-    $fields['event_end'] = BaseFieldDefinition::create('datetime')
-      ->setLabel(t('End date'))
-      ->setDescription(t('End Date (Time) for an Event.'))
-      ->setRevisionable(TRUE)
-      ->setSettings([
-        'datetime_type' => 'datetime',
-        'timezone_storage' => TRUE,
-      ])
-      ->setDefaultValue('')
-      ->setDisplayOptions('view', [
-        'label' => 'above',
-        'type' => 'datetime_default',
-        'settings' => [
-          'format_type' => 'default',
-        ],
-        'weight' => 15,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'datetime_default',
-        'settings' => [
-          'format_type' => 'medium',
-          'timezone_per_date' => TRUE,
-        ],
-        'weight' => 15,
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
+      ->setDisplayConfigurable('view', TRUE)
+      ->setDefaultValue('');
 
     return $fields;
   }
-
 }

@@ -1,0 +1,246 @@
+<?php
+
+/**
+ * @file
+ * Enables Group functionality for the Event module.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
+use Drupal\event\Entity\EventInterface;
+use Drupal\event\Entity\EventTypeInterface;
+use Drupal\group\Entity\Group;
+use Drupal\user\Entity\Role;
+
+/**
+ * Implements hook_rebuild().
+ */
+function event_group_rebuild() {
+  _event_content_enabler_manager()->installEventPlugin();
+}
+
+/**
+ * Gets the group content enabler plugin manager.
+ *
+ * @return \Drupal\event_group\Plugin\EventGroupContentEnablerManager
+ *   The group content enabler plugin manager.
+ *
+ * @internal Try to properly inject the service when possible.
+ */
+function _event_content_enabler_manager() {
+  return \Drupal::service('plugin.manager.event_group_content_enabler');
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function event_group_event_type_insert(EventTypeInterface $event_type) {
+  \Drupal::service('plugin.manager.group_content_enabler')->clearCachedDefinitions();
+}
+
+/**
+ * Implements hook_entity_access().
+ *
+ * When trying to view, update or delete an event it suffices to have the right to
+ * do so in only one group the event belongs to. If you wish to prevent any such
+ * action on your own terms, implement hook_event_access() in your module.
+ */
+function event_group_entity_access(EntityInterface $event, $op, AccountInterface $account) {
+  // Only act on Event Entities.
+  if (!($event instanceof EventInterface)) {
+    return AccessResult::neutral();
+  }
+
+  // We do not care about create access as we have our own wizard for that. Any
+  // operation aside from 'view', 'update' and 'delete' is also unsupported.
+  if (!in_array($op, ['view', 'update', 'delete'])) {
+    return AccessResult::neutral();
+  }
+
+  // Some modules, including the code in \Drupal\event\EventForm::access() may
+  // check for 'view', 'update' or 'delete' access on new events, even though
+  // that makes little sense. We need to account for it to avoid crashes because
+  // we would otherwise query the DB with a non-existent event ID.
+  if ($event->isNew()) {
+    return AccessResult::neutral();
+  }
+
+  $plugin_id = 'event_group:' . $event->bundle();
+
+  // Load all of the group content for this event.
+  $group_contents = \Drupal::entityTypeManager()
+    ->getStorage('group_content')
+    ->loadByEntity($event);
+
+  // If the event does not belong to any group, we have nothing to say.
+  if (empty($group_contents)) {
+    return AccessResult::neutral();
+  }
+
+  /** @var \Drupal\group\Entity\GroupInterface[] $groups */
+  $groups = [];
+  foreach ($group_contents as $group_content) {
+    /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
+    $group = $group_content->getGroup();
+    $groups[$group->id()] = $group;
+  }
+
+  // From this point on you need group to allow you to perform the operation.
+  switch ($op) {
+    case 'view':
+      foreach ($groups as $group) {
+        if ($event->isPublished()) {
+          if ($group->hasPermission("view $plugin_id entity", $account)) {
+            return AccessResult::allowed();
+          }
+        }
+        elseif ($group->hasPermission("view unpublished $plugin_id entity", $account)) {
+          return AccessResult::allowed();
+        }
+      }
+      break;
+
+    case 'update':
+    case 'delete':
+      foreach ($groups as $group) {
+        if ($group->hasPermission("$op any $plugin_id entity", $account)) {
+          return AccessResult::allowed();
+        }
+        elseif ($account->id() == $event->getOwnerId() && $group->hasPermission("$op own $plugin_id entity", $account)) {
+          return AccessResult::allowed();
+        }
+      }
+      break;
+  }
+
+  // Instead of outright forbidding access when no group granted it, we return
+  // a neutral access result to play nice with other modules. If the end result
+  // is still neutral, Drupal will deny access anyway unless the event grants
+  // system allows the operation in a last ditch effort to determine access.
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Hides permissions considered risky by hook_paranoia_hide_permissions().
+ */
+function event_group_form_user_admin_permissions_alter(&$form, FormStateInterface $form_state) {
+  $banned_permissions = ['create events group'];
+  $permissions = \Drupal::service('user.permissions')->getPermissions();
+  $permissions_by_provider = [];
+  foreach ($permissions as $permission_name => $permission) {
+    $permissions_by_provider[$permission['provider']][$permission_name] = $permission;
+  }
+  $has_hidden = FALSE;
+  foreach ($permissions_by_provider as $provider => $provider_permissions) {
+    $hidden_count = 0;
+    foreach ($provider_permissions as $permission_name => $permission) {
+      // If the permission is banned, remove it.
+      if (in_array($permission_name, $banned_permissions)) {
+        unset($form['permissions'][$permission_name]);
+        $hidden_count++;
+        $has_hidden = TRUE;
+      }
+    }
+    // If all permissions for a provider were hidden, remove the provider name.
+    if ($hidden_count == count($provider_permissions)) {
+      unset($form['permissions'][$provider]);
+    }
+  }
+  $form['#submit'][] = 'event_group_permissions_submit';
+}
+
+/**
+ * Helper function to remove all risky permissions from any role.
+ *
+ * Separated out from paranoia_permissions_submit so that there is
+ * clearly no dependency on a form or form state.
+ */
+function _event_group_remove_risky_permissions() {
+  $banned_permissions = ['create events group'];
+  $roles = Role::loadMultiple();
+  foreach ($roles as $role) {
+    foreach ($banned_permissions as $permission) {
+      $role->revokePermission($permission);
+    }
+    $role->save();
+  }
+}
+
+/**
+ * Remove extremely-risky permissions from any role.
+ */
+function event_group_permissions_submit($form, FormStateInterface $form_state) {
+  _event_group_remove_risky_permissions();
+}
+
+function event_group_form_group_events_add_form_alter(&$form, FormStateInterface $form_state) {
+  $form['#markup'] = t('Events cannot be created from this form. <a href="@create-event">Create an event entity</a> instead.',
+  ['@create-event' => Url::fromUri('internal:/event/add')->toString()]);
+  //$form['actions']['submit']['#access'] = FALSE;
+  return $form;
+}
+
+function event_group_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $hello = $form_id;
+}
+
+function event_group_form_event_type_form_alter(&$form, FormStateInterface $form_state) {
+  // Load the current node type configuration entity.
+  /** @var EventTypeInterface $event_type */
+  $event_type = $form_state->getFormObject()->getEntity();
+
+  $form['event_group']['event_group_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Event Group'),
+    '#description' => t('Check this box for large (conference) events that need group functionality.'),
+    '#default_value' => $event_type->getThirdPartySetting('event_group', 'enabled', 0),
+  );
+
+  $form['#entity_builders'][] = 'event_group_form_event_type_form_builder';
+
+}
+
+/**
+ * Entity form builder for the node type form to map some values to third party
+ * settings
+ *
+ * @param $entity_type
+ * @param \Drupal\event\Entity\EventTypeInterface $type
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ */
+function event_group_form_event_type_form_builder($entity_type, EventTypeInterface $type, &$form, FormStateInterface $form_state) {
+  if ($form_state->getValue('event_group_enabled') === 1) {
+    $type->setThirdPartySetting('event_group', 'enabled', 1);
+    return;
+  }
+
+  $type->unsetThirdPartySetting('event_group', 'enabled');
+}
+
+/**
+ * Create a corresponding Event group when an event entity is created.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ */
+function event_group_event_insert(EventInterface $entity) {
+  $event_group_enabled = \Drupal::entityTypeManager()
+    ->getStorage($entity->getEntityType()->getBundleEntityType())
+    ->load($entity->bundle())
+    ->getThirdPartySetting('event_group', 'enabled', 0);
+
+  if ($event_group_enabled) {
+    $event_group = Group::create(
+      [
+        'type' => 'events',
+        'label' => $entity->getName()
+      ]);
+    $event_group->save();
+  }
+}

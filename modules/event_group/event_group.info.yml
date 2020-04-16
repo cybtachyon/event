@@ -1,0 +1,8 @@
+name: 'Event Conferences via Group'
+description: 'Enables an event group for management from the event entity.'
+package: 'Event'
+type: 'module'
+core: '8.x'
+dependencies:
+  - 'event'
+  - 'group:group'

@@ -1,22 +1,22 @@
 <?php
 
-namespace Drupal\Tests\gevent\Functional;
+namespace Drupal\Tests\gnode\Functional;
 
 use Drupal\Tests\group\Functional\EntityOperationsTest as GroupEntityOperationsTest;
 
 /**
  * Tests that entity operations (do not) show up on the group overview.
  *
- * @see gevent_entity_operation()
+ * @see gnode_entity_operation()
  *
- * @group gevent
+ * @group gnode
  */
 class EntityOperationsTest extends GroupEntityOperationsTest {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['gevent'];
+  public static $modules = ['gnode'];
 
   /**
    * {@inheritdoc}
@@ -24,19 +24,19 @@ class EntityOperationsTest extends GroupEntityOperationsTest {
   public function provideEntityOperationScenarios() {
     $scenarios['withoutAccess'] = [
       [],
-      ['group/1/events' => 'Events'],
+      ['group/1/nodes' => 'Nodes'],
     ];
 
     $scenarios['withAccess'] = [
       [],
-      ['group/1/events' => 'Events'],
-      ['access group_event overview'],
+      ['group/1/nodes' => 'Nodes'],
+      ['access group_node overview'],
     ];
 
     $scenarios['withAccessAndViews'] = [
-      ['group/1/events' => 'Events'],
+      ['group/1/nodes' => 'Nodes'],
       [],
-      ['access group_event overview'],
+      ['access group_node overview'],
       ['views'],
     ];
 
