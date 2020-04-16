@@ -18,8 +18,7 @@
     "drupal/field_permissions": "^1.0",
     "drupal/entity_embed": "^1.1",
     "drupal/entity": "^1.0",
-    "drupal/entity_browser": "^2.0",
-    "drupal/machine_name_widget": "^2.0@alpha"
+    "drupal/entity_browser": "^2.0"
   },
   "autoload-dev": {
     "psr-4": {
@@ -28,7 +27,13 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-8.x-1.x": "1.x-dev"
+        "dev-8.x-1.x": "1.x-dev"
+    },
+    "enable-patching": true,
+    "patches": {
+        "drupal/core": {
+            "Issue 2685749: Add a Machine Name widget to core.": "https://www.drupal.org/files/issues/2019-12-16/2685749-73.patch"
+        }
     }
   }
 }
