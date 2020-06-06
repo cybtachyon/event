@@ -338,23 +338,24 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
         'datetime_type' => DateRangeItem::DATETIME_TYPE_DATETIME,
         'timezone_storage' => TRUE,
       ])
-      ->setDisplayOptions('view', array(
+      ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
         'weight' => -4,
-      ))
-      ->setDisplayOptions('form', array(
+      ])
+      ->setDisplayOptions('form', [
         'type' => 'daterange_default',
         'settings' => [
-          'timezone_override'=> '',
+          'timezone_override' => '',
           'timezone_per_date' => TRUE,
         ],
         'weight' => -4,
-      ))
+      ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE)
       ->setDefaultValue('');
 
     return $fields;
   }
+
 }

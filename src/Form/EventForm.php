@@ -3,6 +3,8 @@
 namespace Drupal\event\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
+use Drupal\Core\Entity\EntityFormInterface;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -55,13 +57,13 @@ class EventForm extends ContentEntityForm {
 
     switch ($status) {
       case SAVED_NEW:
-        drupal_set_message($this->t('Created the %label Event.', [
+        $this->messenger->addMessage($this->t('Created the %label Event.', [
           '%label' => $entity->label(),
         ]));
         break;
 
       default:
-        drupal_set_message($this->t('Saved the %label Event.', [
+        $this->messenger->addMessage($this->t('Saved the %label Event.', [
           '%label' => $entity->label(),
         ]));
     }

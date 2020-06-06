@@ -4,6 +4,7 @@ namespace Drupal\event\Form;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
@@ -30,7 +31,7 @@ class EventRevisionRevertForm extends ConfirmFormBase {
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $EventStorage;
+  protected $eventStorage;
 
   /**
    * The date formatter service.
@@ -48,7 +49,7 @@ class EventRevisionRevertForm extends ConfirmFormBase {
    *   The date formatter service.
    */
   public function __construct(EntityStorageInterface $entity_storage, DateFormatterInterface $date_formatter) {
-    $this->EventStorage = $entity_storage;
+    $this->eventStorage = $entity_storage;
     $this->dateFormatter = $date_formatter;
   }
 
@@ -57,7 +58,7 @@ class EventRevisionRevertForm extends ConfirmFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager')->getStorage('event'),
+      EntityTypeManagerInterface::getStorage('event'),
       $container->get('date.formatter')
     );
   }
@@ -101,7 +102,7 @@ class EventRevisionRevertForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $event_revision = NULL) {
-    $this->revision = $this->EventStorage->loadRevision($event_revision);
+    $this->revision = $this->eventStorage->loadRevision($event_revision);
     $form = parent::buildForm($form, $form_state);
 
     return $form;
@@ -120,7 +121,7 @@ class EventRevisionRevertForm extends ConfirmFormBase {
     $this->revision->save();
 
     $this->logger('content')->notice('Event: reverted %title revision %revision.', ['%title' => $this->revision->label(), '%revision' => $this->revision->getRevisionId()]);
-    drupal_set_message(t('Event %title has been reverted to the revision from %revision-date.', ['%title' => $this->revision->label(), '%revision-date' => $this->dateFormatter->format($original_revision_timestamp)]));
+    $this->messenger->addMessage(t('Event %title has been reverted to the revision from %revision-date.', ['%title' => $this->revision->label(), '%revision-date' => $this->dateFormatter->format($original_revision_timestamp)]));
     $form_state->setRedirect(
       'entity.event.version_history',
       ['event' => $this->revision->id()]

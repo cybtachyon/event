@@ -4,6 +4,7 @@ namespace Drupal\event\Form;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\event\Entity\EventInterface;
@@ -51,7 +52,7 @@ class EventRevisionRevertTranslationForm extends EventRevisionRevertForm {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager')->getStorage('event'),
+      EntityTypeManagerInterface::getStorage('event'),
       $container->get('date.formatter'),
       $container->get('language_manager')
     );

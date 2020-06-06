@@ -5,6 +5,9 @@ namespace Drupal\event\Controller;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\event\Entity\EventInterface;
 
@@ -25,8 +28,8 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
    *   An array suitable for drupal_render().
    */
   public function revisionShow($event_revision) {
-    $event = $this->entityManager()->getStorage('event')->loadRevision($event_revision);
-    $view_builder = $this->entityManager()->getViewBuilder('event');
+    $event = EntityTypeManager::getStorage('event')->loadRevision($event_revision);
+    $view_builder = EntityTypeManager::getViewBuilder('event');
 
     return $view_builder->view($event);
   }
@@ -41,8 +44,8 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
    *   The page title.
    */
   public function revisionPageTitle($event_revision) {
-    $event = $this->entityManager()->getStorage('event')->loadRevision($event_revision);
-    return $this->t('Revision of %title from %date', ['%title' => $event->label(), '%date' => format_date($event->getRevisionCreationTime())]);
+    $event = EntityTypeManager::getStorage('event')->loadRevision($event_revision);
+    return $this->t('Revision of %title from %date', ['%title' => $event->label(), '%date' => \Drupal::service('date.formatter')->format($event->getRevisionCreationTime())]);
   }
 
   /**
@@ -60,7 +63,7 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
     $langname = $event->language()->getName();
     $languages = $event->getTranslationLanguages();
     $has_translations = (count($languages) > 1);
-    $event_storage = $this->entityManager()->getStorage('event');
+    $event_storage = EntityTypeManager::getStorage('event');
 
     $build['#title'] = $has_translations ? $this->t('@langname revisions for %title', ['@langname' => $langname, '%title' => $event->label()]) : $this->t('Revisions for %title', ['%title' => $event->label()]);
     $header = [$this->t('Revision'), $this->t('Operations')];
@@ -75,7 +78,7 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
     $latest_revision = TRUE;
 
     foreach (array_reverse($vids) as $vid) {
-      /** @var \Drupal\event\EventInterface $revision */
+      /** @var \Drupal\event\Entity\EventInterface $revision */
       $revision = $event_storage->loadRevision($vid);
       // Only show revisions that are affected by the language that is being
       // displayed.
@@ -88,10 +91,10 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
         // Use revision link to link to revisions that are not active.
         $date = \Drupal::service('date.formatter')->format($revision->getRevisionCreationTime(), 'short');
         if ($vid != $event->getRevisionId()) {
-          $link = $this->l($date, new Url('entity.event.revision', ['event' => $event->id(), 'event_revision' => $vid]));
+          $link = Link::fromTextAndUrl($date, new Url('entity.event.revision', ['event' => $event->id(), 'event_revision' => $vid]));
         }
         else {
-          $link = $event->link($date);
+          $link = EntityInterface::toLink($date)->toString();
         }
 
         $row = [];
