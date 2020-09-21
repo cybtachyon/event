@@ -1,10 +1,9 @@
-uuid: 342c8003-45d8-4627-92e7-62232a16a340
 langcode: en
 status: true
 dependencies:
   module:
     - event
-id: events
+id: events_admin
 label: Events
 module: views
 description: 'Find and manage Events'
@@ -755,7 +754,7 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: admin/content/event
+      path: admin/content/events
       menu:
         type: tab
         title: Events
