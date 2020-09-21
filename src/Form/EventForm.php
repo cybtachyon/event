@@ -18,17 +18,23 @@ class EventForm extends ContentEntityForm {
   public function buildForm(array $form, FormStateInterface $form_state) {
     /* @var $entity \Drupal\event\Entity\Event */
     $form = parent::buildForm($form, $form_state);
+    $entity = $this->entity;
 
-    if (!$this->entity->isNew()) {
+    if (!$entity->isNew()) {
       $form['new_revision'] = [
         '#type' => 'checkbox',
         '#title' => $this->t('Create new revision'),
         '#default_value' => FALSE,
-        '#weight' => 10,
+        '#weight' => 23,
       ];
     }
 
-    $entity = $this->entity;
+    $form['status'] = [
+      '#type' => 'checkbox',
+      '#title' =>  $entity->isPublished() ? $this->t('Published') : $this->t('Not published'),
+      '#default_value' => $entity->isPublished() ? TRUE : FALSE,
+      '#weight' => 25,
+    ];
 
     return $form;
   }
@@ -49,6 +55,13 @@ class EventForm extends ContentEntityForm {
     }
     else {
       $entity->setNewRevision(FALSE);
+    }
+
+    if (!$form_state->isValueEmpty('status') && $form_state->getValue('status') != FALSE) {
+      $entity->setPublished(TRUE);
+    }
+    else {
+      $entity->setPublished(FALSE);
     }
 
     $status = parent::save($form, $form_state);
