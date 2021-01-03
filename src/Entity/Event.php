@@ -56,6 +56,11 @@ use Drupal\user\UserInterface;
  *     "status" = "status",
  *     "machine_name" = "machine_name"
  *   },
+ *   revision_metadata_keys = {
+ *     "revision_user" = "revision_user",
+ *     "revision_created" = "revision_created",
+ *     "revision_log_message" = "revision_log",
+ *   },
  *   links = {
  *     "add-page" = "/event/add",
  *     "add-form" = "/event/add/{event_type}",
