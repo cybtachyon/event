@@ -30,6 +30,11 @@ use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
  *     "label" = "label",
  *     "uuid" = "uuid"
  *   },
+ *   config_export = {
+ *      "id",
+ *      "label",
+ *      "timezone",
+ *   },
  *   links = {
  *     "add-form" = "/admin/structure/event/add",
  *     "edit-form" = "/admin/structure/event/manage/{event_type}/edit",
