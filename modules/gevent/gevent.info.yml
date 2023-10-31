@@ -2,7 +2,7 @@ name: 'Group Event'
 description: 'Enables adding Events to Groups'
 package: 'Group'
 type: 'module'
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
-  - 'event'
-  - 'group:group'
+  - event:event
+  - group:group
