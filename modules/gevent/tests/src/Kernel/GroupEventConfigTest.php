@@ -16,10 +16,11 @@ class GroupEventConfigTest extends EntityKernelTestBase {
    *
    * @var array
    */
-  public static $modules = ['group', 'event', 'gevent', 'views'];
+  protected static $modules = ['group', 'event', 'gevent', 'views'];
 
   /**
    * Tests that the module's config installs properly.
+   * @doesNotPerformAssertions
    */
   public function testConfig() {
     $this->installConfig(['gevent']);

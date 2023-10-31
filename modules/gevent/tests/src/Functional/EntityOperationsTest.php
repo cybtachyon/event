@@ -16,7 +16,7 @@ class EntityOperationsTest extends GroupEntityOperationsTest {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['gevent'];
+  protected static $modules = ['gevent'];
 
   /**
    * {@inheritdoc}

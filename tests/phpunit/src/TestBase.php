@@ -7,7 +7,7 @@ namespace Drupal\Tests\PHPUnit;
  *
  * Verifies that behat configuration is as expected.
  */
-abstract class TestBase extends \PHPUnit_Framework_TestCase {
+abstract class TestBase extends \PHPUnit\Framework\TestCase {
 
   protected $projectDirectory;
   protected $drupalRoot;
