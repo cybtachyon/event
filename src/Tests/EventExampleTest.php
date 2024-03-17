@@ -12,6 +12,11 @@ use Drupal\Tests\BrowserTestBase;
 class EventExampleTest extends BrowserTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * A meaningless test to ensure that automated build is running simpletest.
    */
   public function testAutomatedBuild() {
