@@ -2,9 +2,9 @@ langcode: en
 status: true
 dependencies:
   module:
+    - event
     - gevent
     - group
-    - event
 id: group_events
 label: 'Group events'
 module: gevent
@@ -12,7 +12,6 @@ description: 'Lists all of the events that have been added to a group.'
 tag: ''
 base_table: event_field_data
 base_field: nid
-core: 8.x
 display:
   default:
     display_plugin: default
@@ -66,6 +65,7 @@ display:
             offset: false
             offset_label: Offset
           quantity: 9
+          pagination_heading_level: h4
       style:
         type: table
         options:
@@ -420,6 +420,15 @@ display:
             date_format: short
             custom_date_format: ''
             timezone: ''
+            tooltip:
+              date_format: ''
+              custom_date_format: ''
+            time_diff:
+              enabled: false
+              future_format: '@interval hence'
+              past_format: '@interval ago'
+              granularity: 2
+              refresh: 60
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -887,7 +896,6 @@ display:
           default_argument_type: fixed
           default_argument_options:
             argument: ''
-          default_argument_skip_url: false
           summary_options:
             base_path: ''
             count: true
