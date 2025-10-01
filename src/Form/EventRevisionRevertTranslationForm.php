@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\event\Entity\EventInterface;
+use Drupal\event\EventStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -51,8 +52,13 @@ class EventRevisionRevertTranslationForm extends EventRevisionRevertForm {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
+    /** @var EntityTypeManagerInterface $entity_type_manager */
+    $entity_type_manager = $container->get('entity_type.manager');
+    /** @var EventStorageInterface $event_storage */
+    $event_storage = $entity_type_manager->getStorage('event');
+
     return new static(
-      EntityTypeManagerInterface::getStorage('event'),
+      $event_storage,
       $container->get('date.formatter'),
       $container->get('language_manager')
     );
@@ -69,7 +75,7 @@ class EventRevisionRevertTranslationForm extends EventRevisionRevertForm {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Are you sure you want to revert @language translation to the revision from %revision-date?', ['@language' => $this->languageManager->getLanguageName($this->langcode), '%revision-date' => $this->dateFormatter->format($this->revision->getRevisionCreationTime())]);
+    return $this->t('Are you sure you want to revert @language translation to the revision from %revision-date?', ['@language' => $this->languageManager->getLanguageName($this->langcode), '%revision-date' => $this->dateFormatter->format($this->revision->getRevisionCreationTime())]);
   }
 
   /**
@@ -94,8 +100,8 @@ class EventRevisionRevertTranslationForm extends EventRevisionRevertForm {
   protected function prepareRevertedRevision(EventInterface $revision, FormStateInterface $form_state) {
     $revert_untranslated_fields = $form_state->getValue('revert_untranslated_fields');
 
-    /** @var \Drupal\event\Entity\EventInterface $default_revision */
-    $latest_revision = $this->EventStorage->load($revision->id());
+    /** @var \Drupal\event\Entity\EventInterface $latest_revision */
+    $latest_revision = $this->eventStorage->load($revision->id());
     $latest_revision_translation = $latest_revision->getTranslation($this->langcode);
 
     $revision_translation = $revision->getTranslation($this->langcode);

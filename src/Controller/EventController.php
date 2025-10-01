@@ -54,6 +54,7 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
    *   The service container this instance should use.
    */
   public static function create(ContainerInterface $container) {
+    /** @var RendererInterface $renderer */
     $renderer = $container->get('renderer');
     /** @var DateFormatterInterface $date_formatter */
     $date_formatter = $container->get('date.formatter');

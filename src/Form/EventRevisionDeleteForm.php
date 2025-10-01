@@ -3,11 +3,13 @@
 namespace Drupal\event\Form;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\event\EventStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -17,6 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class EventRevisionDeleteForm extends ConfirmFormBase {
 
+  protected DateFormatterInterface $dateFormatter;
 
   /**
    * The Event revision.
@@ -28,7 +31,7 @@ class EventRevisionDeleteForm extends ConfirmFormBase {
   /**
    * The Event storage.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\event\EventStorageInterface
    */
   protected $eventStorage;
 
@@ -47,7 +50,8 @@ class EventRevisionDeleteForm extends ConfirmFormBase {
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection.
    */
-  public function __construct(EntityStorageInterface $entity_storage, Connection $connection) {
+  public function __construct(DateFormatterInterface $data_formatter, EntityStorageInterface $entity_storage, Connection $connection) {
+    $this->dateFormatter = $data_formatter;
     $this->eventStorage = $entity_storage;
     $this->connection = $connection;
   }
@@ -56,8 +60,16 @@ class EventRevisionDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
+    /** @var DateFormatterInterface $date_formatter */
+    $date_formatter = $container->get('date.formatter');
+    /** @var EntityTypeManagerInterface $entity_type_manager */
+    $entity_type_manager = $container->get('entity_type.manager');
+    /** @var EventStorageInterface $event_storage */
+    $event_storage = $entity_type_manager->getStorage('event');
+
     return new static(
-      EntityTypeManagerInterface::getStorage('event'),
+      $date_formatter,
+      $event_storage,
       $container->get('database')
     );
   }
@@ -73,7 +85,7 @@ class EventRevisionDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Are you sure you want to delete the revision from %revision-date?', ['%revision-date' => \Drupal::service('date.formatter')->format($this->revision->getRevisionCreationTime())]);
+    return $this->t('Are you sure you want to delete the revision from %revision-date?', ['%revision-date' => $this->dateFormatter->format($this->revision->getRevisionCreationTime())]);
   }
 
   /**
@@ -87,7 +99,7 @@ class EventRevisionDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getConfirmText() {
-    return t('Delete');
+    return $this->t('Delete');
   }
 
   /**
@@ -107,7 +119,7 @@ class EventRevisionDeleteForm extends ConfirmFormBase {
     $this->eventStorage->deleteRevision($this->revision->getRevisionId());
 
     $this->logger('content')->notice('Event: deleted %title revision %revision.', ['%title' => $this->revision->label(), '%revision' => $this->revision->getRevisionId()]);
-    $this->messenger->addMessage(t('Revision from %revision-date of Event %title has been deleted.', ['%revision-date' => \Drupal::service('date.formatter')->format($this->revision->getRevisionCreationTime()), '%title' => $this->revision->label()]));
+    $this->messenger->addMessage($this->t('Revision from %revision-date of Event %title has been deleted.', ['%revision-date' => $this->dateFormatter->format($this->revision->getRevisionCreationTime()), '%title' => $this->revision->label()]));
     $form_state->setRedirect(
       'entity.event.canonical',
        ['event' => $this->revision->id()]
