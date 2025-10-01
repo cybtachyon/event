@@ -29,7 +29,7 @@ class EventRevisionRevertForm extends ConfirmFormBase {
   /**
    * The Event storage.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\event\EventStorageInterface
    */
   protected $eventStorage;
 
