@@ -22,6 +22,9 @@
     "drupal/entity": "^1.0",
     "drupal/entity_browser": "^2.0"
   },
+  "require-dev": {
+    "drupal/group": "^1.0"
+  },
   "autoload-dev": {
     "psr-4": {
       "Drupal\\Tests\\PHPUnit\\": "tests/phpunit/src/"
