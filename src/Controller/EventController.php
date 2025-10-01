@@ -4,12 +4,16 @@ namespace Drupal\event\Controller;
 
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityViewBuilderInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Url;
 use Drupal\event\Entity\EventInterface;
+use Drupal\event\EventStorageInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class EventController.
@@ -17,6 +21,55 @@ use Drupal\event\Entity\EventInterface;
  *  Returns responses for Event routes.
  */
 class EventController extends ControllerBase implements ContainerInjectionInterface {
+
+  protected RendererInterface $renderer;
+
+  protected DateFormatterInterface $dateFormatter;
+
+  protected EventStorageInterface $storage;
+
+  protected EntityViewBuilderInterface $viewBuilder;
+
+  public function __construct(
+    RendererInterface $renderer,
+    DateFormatterInterface $date_formatter,
+    EventStorageInterface $storage,
+    EntityViewBuilderInterface $view_builder
+  ) {
+    $this->renderer = $renderer;
+    $this->dateFormatter = $date_formatter;
+    $this->storage = $storage;
+    $this->viewBuilder = $view_builder;
+  }
+
+  /**
+   * Instantiates a new instance of this class.
+   *
+   * This is a factory method that returns a new instance of this class. The
+   * factory should pass any needed dependencies into the constructor of this
+   * class, but not the container itself. Every call to this method must return
+   * a new instance of this class; that is, it may not implement a singleton.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container this instance should use.
+   */
+  public static function create(ContainerInterface $container) {
+    $renderer = $container->get('renderer');
+    /** @var DateFormatterInterface $date_formatter */
+    $date_formatter = $container->get('date.formatter');
+    /** @var EntityTypeManagerInterface $entity_type_manager */
+    $entity_type_manager = $container->get('entity_type.manager');
+    /** @var EventStorageInterface $event_storage */
+    $event_storage = $entity_type_manager->getStorage('event');
+    $event_view_builder = $entity_type_manager->getViewBuilder('event');
+
+    return new static(
+      $renderer,
+      $date_formatter,
+      $event_storage,
+      $event_view_builder
+    );
+  }
 
   /**
    * Displays a Event  revision.
@@ -28,10 +81,8 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
    *   An array suitable for drupal_render().
    */
   public function revisionShow($event_revision) {
-    $event = EntityTypeManager::getStorage('event')->loadRevision($event_revision);
-    $view_builder = EntityTypeManager::getViewBuilder('event');
-
-    return $view_builder->view($event);
+    $event = $this->storage->loadRevision($event_revision);
+    return $this->viewBuilder->view($event);
   }
 
   /**
@@ -44,8 +95,9 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
    *   The page title.
    */
   public function revisionPageTitle($event_revision) {
-    $event = EntityTypeManager::getStorage('event')->loadRevision($event_revision);
-    return $this->t('Revision of %title from %date', ['%title' => $event->label(), '%date' => \Drupal::service('date.formatter')->format($event->getRevisionCreationTime())]);
+    /** @var EventInterface $event */
+    $event = $this->storage->loadRevision($event_revision);
+    return $this->t('Revision of %title from %date', ['%title' => $event->label(), '%date' => $this->dateFormatter->format($event->getRevisionCreationTime())]);
   }
 
   /**
@@ -63,7 +115,6 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
     $langname = $event->language()->getName();
     $languages = $event->getTranslationLanguages();
     $has_translations = (count($languages) > 1);
-    $event_storage = EntityTypeManager::getStorage('event');
 
     $build['#title'] = $has_translations ? $this->t('@langname revisions for %title', ['@langname' => $langname, '%title' => $event->label()]) : $this->t('Revisions for %title', ['%title' => $event->label()]);
     $header = [$this->t('Revision'), $this->t('Operations')];
@@ -73,13 +124,13 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
 
     $rows = [];
 
-    $vids = $event_storage->revisionIds($event);
+    $vids = $this->storage->revisionIds($event);
 
     $latest_revision = TRUE;
 
     foreach (array_reverse($vids) as $vid) {
       /** @var \Drupal\event\Entity\EventInterface $revision */
-      $revision = $event_storage->loadRevision($vid);
+      $revision = $this->storage->loadRevision($vid);
       // Only show revisions that are affected by the language that is being
       // displayed.
       if ($revision->hasTranslation($langcode) && $revision->getTranslation($langcode)->isRevisionTranslationAffected()) {
@@ -89,12 +140,12 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
         ];
 
         // Use revision link to link to revisions that are not active.
-        $date = \Drupal::service('date.formatter')->format($revision->getRevisionCreationTime(), 'short');
+        $date = $this->dateFormatter->format($revision->getRevisionCreationTime(), 'short');
         if ($vid != $event->getRevisionId()) {
-          $link = Link::fromTextAndUrl($date, new Url('entity.event.revision', ['event' => $event->id(), 'event_revision' => $vid]));
+          $link = $revision->toLink($date, 'revision');
         }
         else {
-          $link = EntityInterface::toLink($date)->toString();
+          $link = $event->toLink($date)->toString();
         }
 
         $row = [];
@@ -104,7 +155,7 @@ class EventController extends ControllerBase implements ContainerInjectionInterf
             '#template' => '{% trans %}{{ date }} by {{ username }}{% endtrans %}{% if message %}<p class="revision-log">{{ message }}</p>{% endif %}',
             '#context' => [
               'date' => $link,
-              'username' => \Drupal::service('renderer')->renderPlain($username),
+              'username' => $this->renderer->renderPlain($username),
               'message' => ['#markup' => $revision->getRevisionLogMessage(), '#allowed_tags' => Xss::getHtmlTagList()],
             ],
           ],
