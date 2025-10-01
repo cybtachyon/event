@@ -15,7 +15,7 @@
   },
   "require": {
     "cweagans/composer-patches": "^1.6.7",
-    "drupal/core": "^9 || ^10",
+    "drupal/core": "^9 || ^10 || ^11",
     "drupal/diff": "^1.0",
     "drupal/field_permissions": "^1.0",
     "drupal/entity_embed": "^1.1",
@@ -34,7 +34,7 @@
     "enable-patching": true,
     "patches": {
         "drupal/core": {
-            "Issue 2685749: Add a Machine Name widget to core.": "https://www.drupal.org/files/issues/2019-12-16/2685749-73.patch"
+            "Issue 2685749: Add a Machine Name widget to core.": "https://www.drupal.org/files/issues/2024-10-22/machine-name-widget-2685749-141.patch"
         }
     }
   }
