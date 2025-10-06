@@ -1,2 +1,0 @@
-route_callbacks:
-  - '\Drupal\gevent\Routing\GroupEventRouteProvider::getRoutes'
