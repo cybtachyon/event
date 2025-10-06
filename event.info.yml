@@ -1,6 +1,6 @@
 name: 'Event'
 description: 'Creates Event Entities for managing Events.'
 type: module
-core_version_requirement: ^9 || ^10 || ^11
+core_version_requirement: ^10.3 || ^11
 dependencies:
   - drupal:datetime_range
