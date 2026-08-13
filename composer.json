@@ -16,7 +16,7 @@
   "require": {
     "cweagans/composer-patches": "^1.6.7",
     "drupal/core": "^10.3 || ^11 || ^12",
-    "drupal/diff": "^1.0",
+    "drupal/diff": "^2.1",
     "drupal/field_permissions": "^1.0",
     "drupal/entity_embed": "^1.1",
     "drupal/entity": "^1.0",
