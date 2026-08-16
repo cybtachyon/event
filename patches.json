@@ -1,0 +1,10 @@
+{
+  "patches": {
+    "drupal/core": {
+      "Add a 'machine_name' widget for string field types with a UniqueField constraint - https://www.drupal.org/project/drupal/issues/2685749#comment-16681505": "https://www.drupal.org/files/issues/2026-07-11/2685749-153-11.4-machine_name-widget.patch"
+    },
+    "drupal/patternkit": {
+      "Installation fails in Drupal 11.3 with Fatal error https://www.drupal.org/project/patternkit/issues/3616897#comment-16732377": "https://git.drupalcode.org/project/patternkit/-/merge_requests/204.patch"
+    }
+  }
+}
