@@ -52,7 +52,7 @@ use Drupal\user\UserInterface;
  *     "uuid" = "uuid",
  *     "uid" = "user_id",
  *     "langcode" = "langcode",
- *     "status" = "status",
+ *     "published" = "status",
  *     "machine_name" = "machine_name"
  *   },
  *   revision_metadata_keys = {
