@@ -10,6 +10,9 @@ event.type.*:
       label: 'Label'
     uuid:
       type: string
+    timezone:
+      type: boolean
+      label: 'Timezone'
     description:
       type: text
       label: 'Description'
