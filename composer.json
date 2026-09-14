@@ -26,10 +26,5 @@
     "psr-4": {
       "Drupal\\Tests\\PHPUnit\\": "tests/phpunit/src/"
     }
-  },
-  "extra": {
-    "branch-alias": {
-        "dev-8.x-1.x": "1.x-dev"
-    }
   }
 }
