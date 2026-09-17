@@ -79,5 +79,8 @@ class EventForm extends ContentEntityForm {
         ]));
     }
     $form_state->setRedirect('entity.event.canonical', ['event' => $entity->id()]);
+
+    return $status;
   }
+
 }
