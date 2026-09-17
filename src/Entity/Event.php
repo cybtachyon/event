@@ -208,7 +208,7 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
    * {@inheritdoc}
    */
   public function isPublished() {
-    return (bool) $this->getEntityKey('status');
+    return (bool) $this->getEntityKey('published');
   }
 
   /**
