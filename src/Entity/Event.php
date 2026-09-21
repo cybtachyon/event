@@ -51,7 +51,9 @@ use Drupal\user\UserInterface;
  *     "label" = "name",
  *     "uuid" = "uuid",
  *     "uid" = "user_id",
+ *     "owner" = "user_id",
  *     "langcode" = "langcode",
+ *     "status" = "status",
  *     "published" = "status",
  *     "machine_name" = "machine_name"
  *   },
@@ -208,22 +210,28 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
    * {@inheritdoc}
    */
   public function isPublished() {
+    // Read the value through the "published" entity key so this stays in
+    // sync with modules that resolve the key from the type definition,
+    // such as the group module's query access handler.
     return (bool) $this->getEntityKey('published');
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setPublished($published = NULL) {
-    $this->set('status', $published ? TRUE : FALSE);
+  public function setPublished($published = TRUE) {
+    $key = $this->getEntityType()->getKey('published');
+    $this->set($key, $published ? TRUE : FALSE);
     return $this;
   }
 
   /**
-   * @inheritDoc
+   * {@inheritdoc}
    */
   public function setUnpublished() {
-    $this->set('status', FALSE);
+    $key = $this->getEntityType()->getKey('published');
+    $this->set($key, FALSE);
+    return $this;
   }
 
   /**
@@ -238,9 +246,10 @@ class Event extends RevisionableContentEntityBase implements EventInterface {
    *   Loaded Link entity or NULL if not found.
    */
   public static function loadByMachineName($machine_name) {
-    $storage = \Drupal::service('entity.manager')->getStorage('event');
+    $storage = \Drupal::service('entity_type.manager')->getStorage('event');
     $result = $storage->getQuery()
       ->condition('machine_name', $machine_name)
+      ->accessCheck(FALSE)
       ->execute();
     return $result ? $storage->loadMultiple($result) : [];
   }
