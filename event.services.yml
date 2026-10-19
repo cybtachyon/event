@@ -1,0 +1,6 @@
+services:
+  cache_context.user.event_grants:
+    class: Drupal\event\Cache\EventAccessGrantsCacheContext
+    arguments: ['@current_user']
+    tags:
+      - { name: 'cache.context' }
